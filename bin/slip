@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+/**
+ * Slipstream CLI Entry Point
+ * 
+ * This script serves as the executable entry point for the slip command.
+ * It delegates to the compiled client code.
+ */
+
+import('../dist/client/index.js');
