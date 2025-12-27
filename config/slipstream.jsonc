@@ -2,59 +2,52 @@
   // Slipstream OpenCode Configuration
   // Copy to ~/.config/opencode/opencode.jsonc or set OPENCODE_CONFIG env var
   
-  "$schema": "https://opencode.ai/config.schema.json",
-  
-  // Default model
-  "model": "anthropic/claude-sonnet-4-20250514",
+  "$schema": "https://opencode.ai/config.json",
   
   // Agent definitions
   "agent": {
     "slipstream": {
-      "prompt": "./agents/slipstream.md"
+      "description": "Terminal AI assistant optimized for shell workflows",
+      "mode": "primary",
+      "prompt": "./agents/slipstream.md",
+      "tools": {
+        "bash": true,
+        "read": true,
+        "write": true,
+        "glob": true,
+        "grep": true,
+        "skill": true
+      }
     },
     "slipstream/learner": {
-      "prompt": "./agents/learner.md"
+      "description": "Analyzes session activity and updates skills",
+      "mode": "subagent",
+      "prompt": "./agents/learner.md",
+      "tools": {
+        "read": true,
+        "write": true
+      }
     },
     "slipstream/crawl": {
-      "prompt": "./agents/crawl.md"
+      "description": "Summarizes directories and projects",
+      "mode": "subagent",
+      "prompt": "./agents/crawl.md",
+      "tools": {
+        "bash": true,
+        "read": true,
+        "glob": true
+      }
     }
   },
   
   // Commands
   "command": {
-    "fix": {
-      "template": "./commands/fix.md"
-    },
-    "explain": {
-      "template": "./commands/explain.md"
-    },
-    "review": {
-      "template": "./commands/review.md"
-    },
-    "crawl": {
-      "template": "./commands/crawl.md"
-    }
+    "fix": "./commands/fix.md",
+    "explain": "./commands/explain.md",
+    "review": "./commands/review.md",
+    "crawl": "./commands/crawl.md"
   },
   
   // MCP servers (optional)
-  "mcp": {},
-  
-  // Tool permissions
-  "tool": {
-    "bash": {
-      "enabled": true
-    },
-    "read": {
-      "enabled": true
-    },
-    "write": {
-      "enabled": true
-    },
-    "glob": {
-      "enabled": true
-    },
-    "grep": {
-      "enabled": true
-    }
-  }
+  "mcp": {}
 }
