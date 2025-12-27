@@ -241,7 +241,182 @@ const learn = command({
   },
 });
 
+// --- Session Commands ---
+
+const sessionList = command({
+  name: 'list',
+  desc: 'List slipstream sessions',
+  options: {
+    limit: number('limit').alias('n').default(20),
+  },
+  handler: async ({ limit }) => {
+    const result = spawnSync('opencode', ['session', 'list', '-n', String(limit), '--format', 'json'], {
+      encoding: 'utf-8',
+    });
+
+    if (result.status !== 0) {
+      console.log('No sessions found');
+      return;
+    }
+
+    try {
+      const sessions = JSON.parse(result.stdout) as Array<{ id: string; title?: string }>;
+      const slipSessions = sessions.filter((s) => s.id.startsWith('slip-'));
+
+      if (slipSessions.length === 0) {
+        console.log('No slipstream sessions found');
+        return;
+      }
+
+      console.log('Slipstream Sessions:');
+      for (const s of slipSessions) {
+        const tty = s.id.replace('slip-_dev_', '').replace('slip-', '');
+        const title = s.title || '(untitled)';
+        console.log(`  ${tty.padEnd(12)} ${title}`);
+      }
+    } catch {
+      console.log('No sessions found');
+    }
+  },
+});
+
+const sessionAttach = command({
+  name: 'attach',
+  desc: 'Open session in TUI',
+  options: {
+    id: positional().desc('Session ID or TTY name'),
+  },
+  handler: async ({ id }) => {
+    if (!id) {
+      console.log('Usage: slip session attach <id>');
+      return;
+    }
+    const sessionId = id.startsWith('slip-') ? id : `slip-_dev_${id}`;
+    spawnSync('opencode', ['--session', sessionId], {
+      stdio: 'inherit',
+    });
+  },
+});
+
+const session = command({
+  name: 'session',
+  desc: 'Manage slipstream sessions',
+  subcommands: [sessionList, sessionAttach],
+});
+
+// --- Skill Commands ---
+
+const SKILL_DIR = join(homedir(), '.opencode', 'skill');
+
+const skillList = command({
+  name: 'list',
+  desc: 'List available skills',
+  handler: async () => {
+    const { readdirSync, readFileSync } = await import('fs');
+    
+    try {
+      mkdirSync(SKILL_DIR, { recursive: true });
+      const entries = readdirSync(SKILL_DIR, { withFileTypes: true });
+      const skills = entries.filter((e) => e.isDirectory());
+
+      if (skills.length === 0) {
+        console.log('No skills found');
+        console.log(`Create skills in: ${SKILL_DIR}`);
+        return;
+      }
+
+      console.log('Available Skills:');
+      for (const skill of skills) {
+        const skillFile = join(SKILL_DIR, skill.name, 'SKILL.md');
+        try {
+          const content = readFileSync(skillFile, 'utf-8');
+          const desc = content.match(/description:\s*(.+)/)?.[1] || '';
+          console.log(`  ${skill.name}: ${desc}`);
+        } catch {
+          console.log(`  ${skill.name}`);
+        }
+      }
+    } catch (e) {
+      console.log('Error reading skills:', e);
+    }
+  },
+});
+
+const skillCreate = command({
+  name: 'create',
+  desc: 'Create a new skill',
+  options: {
+    name: positional().desc('Skill name (lowercase-hyphenated)'),
+  },
+  handler: async ({ name }) => {
+    if (!name) {
+      console.log('Usage: slip skill create <name>');
+      return;
+    }
+
+    // Validate name
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) {
+      console.log('Error: Name must be lowercase alphanumeric with hyphens');
+      console.log('Example: my-skill, git-commit, k8s-debug');
+      return;
+    }
+
+    const skillDir = join(SKILL_DIR, name);
+    const skillFile = join(skillDir, 'SKILL.md');
+
+    try {
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        skillFile,
+        `---
+name: ${name}
+description: TODO - describe what this skill does
+---
+
+## What I do
+- TODO
+
+## When to use me
+TODO
+`
+      );
+      console.log(`✓ Created ${skillFile}`);
+    } catch (e) {
+      console.log('Error creating skill:', e);
+    }
+  },
+});
+
+const skillShow = command({
+  name: 'show',
+  desc: 'Show skill content',
+  options: {
+    name: positional().desc('Skill name'),
+  },
+  handler: async ({ name }) => {
+    if (!name) {
+      console.log('Usage: slip skill show <name>');
+      return;
+    }
+
+    const skillFile = join(SKILL_DIR, name, 'SKILL.md');
+    try {
+      const content = readFileSync(skillFile, 'utf-8');
+      console.log(content);
+    } catch {
+      console.log(`Skill not found: ${name}`);
+    }
+  },
+});
+
+const skill = command({
+  name: 'skill',
+  desc: 'Manage slipstream skills',
+  subcommands: [skillList, skillCreate, skillShow],
+});
+
 // Run CLI
-run([main, server, learn], {
+run([main, server, session, skill, learn], {
   version: '0.1.0',
 });
+
