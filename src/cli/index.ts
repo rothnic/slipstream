@@ -24,6 +24,15 @@ const CONFIG_DIR = join(homedir(), '.config', 'opencode', 'slipstream');
 const CACHE_DIR = join(CONFIG_DIR, 'cache');
 const STATE_FILE = join(CACHE_DIR, 'server-state.json');
 
+// Known subcommands - if first arg is not one of these, treat as prompt
+const KNOWN_COMMANDS = ['server', 'session', 'skill', 'model', 'learn', 'slip', '--help', '-h', '--version', '-v'];
+
+// Preprocess args: if first arg isn't a known command/flag, insert 'slip' 
+const args = process.argv.slice(2);
+if (args.length > 0 && !KNOWN_COMMANDS.includes(args[0])) {
+  process.argv.splice(2, 0, 'slip');
+}
+
 // Ensure cache directory exists
 try {
   mkdirSync(CACHE_DIR, { recursive: true });
@@ -118,29 +127,28 @@ const main = command({
   options: {
     prompt: positional().desc('Natural language prompt'),
     new: boolean('new').alias('n').desc('Start new session'),
-    agent: string('agent').alias('a').default('slipstream').desc('Agent to use'),
-    port: number('port').alias('p').default(DEFAULT_PORT).desc('Server port'),
     model: string('model').alias('m').desc('Model to use'),
+    continue_session: boolean('continue').alias('c').desc('Continue last session'),
   },
-  transform: async (opts) => ({
-    ...opts,
-    session: opts.new ? undefined : await getSessionId(),
-  }),
-  handler: async ({ prompt, session, agent, port, model }) => {
+  handler: async ({ prompt, new: isNew, model, continue_session }) => {
     if (!prompt) {
       console.log('Usage: slip "your prompt here"');
       console.log('       slip --help');
       return;
     }
 
-    const serverPort = await ensureServer(port);
-
-    const args = ['opencode', 'run', '--attach', `http://localhost:${serverPort}`, '--agent', agent];
-    if (session) args.push('--session', session);
+    // Build opencode run command
+    const args = ['run'];
+    
+    // Session handling: --continue resumes, --new starts fresh, default is new per command
+    if (continue_session && !isNew) {
+      args.push('--continue');
+    }
+    
     if (model) args.push('--model', model);
     args.push(prompt);
 
-    spawnSync(args[0], args.slice(1), { stdio: 'inherit' });
+    spawnSync('opencode', args, { stdio: 'inherit' });
   },
 });
 

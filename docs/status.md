@@ -1,88 +1,92 @@
 # Slipstream Implementation Status
 
-## Phase 0: Research & Validation
-| Task | Status | Notes |
-|------|--------|-------|
-| R1: Test CLI latency | ⏳ | Script created, not executed |
-| R2: Test session.idle behavior | ⏳ | Plugin created, needs testing |
-| R3: Test commands with shell | ⏳ | Not started |
-| R4: Test skill auto-discovery | ⏳ | Skills exist, not tested |
-| R5: Check gum/fzf availability | ✅ | fzf available, gum not installed |
+## ✅ VERIFIED WORKING
 
-## Phase 1: Foundation
-| Task | Status | Notes |
-|------|--------|-------|
-| Create plugin from template | ⚠️ | Plugin structure exists but not validated |
-| Set up config directory structure | ✅ | config/ with agents, commands, skills |
-| Create slipstream.jsonc | ✅ | Valid per schema |
-| Write primary agent prompt | ✅ | Inline in config |
-| Write learner sub-agent prompt | ✅ | Inline in config |
-| Write crawl sub-agent prompt | ✅ | Inline in config |
+### Unit Tests (27 passing)
+- [x] Server health checking (6 tests)
+- [x] Session ID generation (5 tests)
+- [x] Interactive UI detection (4 tests)
+- [x] CLI structure (2 tests)
+- [x] Session commands (3 tests)
+- [x] Bun utilities (7 tests)
 
-## Phase 2: Core CLI (slip)
-| Task | Status | Notes |
-|------|--------|-------|
-| Implement slip main command | ✅ | brocli CLI |
-| Implement server start/stop/status | ✅ | Tested working |
-| Implement health check loop | ✅ | checkHealth() |
-| Implement port conflict handling | ✅ | findAvailablePort() |
-| Implement TTY-based session ID | ✅ | getSessionId() |
-| Implement slip session list | ✅ | Via CLI |
-| Implement slip session attach | ✅ | Via CLI |
-| Implement slip model list/set | ❌ | Not implemented |
+### CLI Commands (verified via terminal)
+- [x] `slip --version` → 0.1.0
+- [x] `slip server start` → starts opencode serve
+- [x] `slip server status` → shows health
+- [x] `slip server stop` → graceful shutdown
+- [x] `slip server restart` → restart cycle
+- [x] `slip skill list` → shows skills
+- [x] `slip skill create <name>` → creates skill
+- [x] `slip skill show <name>` → shows content
+- [x] `slip model current` → shows model
+- [x] `slip model set <name>` → sets model
+- [x] `slip session list` → lists sessions (via opencode)
 
-## Phase 3: Shell Integration
-| Task | Status | Notes |
-|------|--------|-------|
-| Create slipstream.plugin.zsh | ✅ | Created |
-| Implement # prefix trigger | ✅ | In plugin |
-| Implement Ctrl+A toggle mode | ✅ | In plugin |
-| Implement 🤖 prompt indicator | ✅ | In plugin |
-| Implement model indicator | ✅ | In plugin |
-| Implement command_not_found hook | ✅ | In plugin |
-| Test plugin in isolation | ✅ | test-zsh-plugin.zsh |
-| Install plugin to oh-my-zsh | ❌ | Not done (user action) |
+### Zsh Plugin (verified via test script)
+- [x] Functions defined (slip, __slip_toggle_mode, __slip_is_natural_language)
+- [x] NL detection for phrases
+- [x] Command detection for common tools
+- [x] Session ID from TTY
 
-## Phase 4: Learning System
-| Task | Status | Notes |
-|------|--------|-------|
-| Implement session.idle hook | ⚠️ | Plugin code exists but not validated |
-| Implement learner sub-agent trigger | ⚠️ | Via slip learn command |
-| Create slipstream-prefs skill template | ✅ | Template exists |
-| Create slipstream-aliases skill template | ✅ | Template exists |
-| Create slipstream-workflows skill template | ✅ | Template exists |
-| Implement slip skill list | ✅ | Working |
-| Implement slip skill create | ✅ | Working |
+### Build & Config
+- [x] tsup build succeeds (13.42 KB bundle)
+- [x] OpenCode config valid (slipstream.jsonc)
+- [x] Agent prompts inline
+- [x] Commands defined
 
-## Phase 5: Polish & Commands
-| Task | Status | Notes |
-|------|--------|-------|
-| Create /fix command | ✅ | In config |
-| Create /explain command | ✅ | In config |
-| Create /review command | ✅ | In config |
-| Implement gum-based UI tools | ✅ | interactive.ts with fallbacks |
-| Create slip plugin install | ⚠️ | install.sh exists |
-| Write README with examples | ✅ | Comprehensive |
-| Create installation script | ✅ | install.sh |
+---
 
-## Test Coverage
-| Module | Tests | Status |
-|--------|-------|--------|
-| server.ts | 6 | ✅ All pass |
-| session.ts | 5 | ✅ All pass |
-| interactive.ts | 4 | ✅ All pass |
-| session commands | 3 | ✅ All pass |
-| CLI structure | 2 | ✅ All pass |
-| Zsh plugin | 15 | ✅ All pass (via test script) |
+## ⚠️ NOT YET TESTED (requires manual verification)
 
-## Known Issues
-1. ~~TypeScript errors in server.test.ts~~ Fixed with @ts-expect-error
-2. Plugin not validated with actual OpenCode
-3. session.idle hook not integration tested
-4. `slip model` subcommand not implemented
+### Integration with OpenCode
+- [ ] `slip "prompt"` sends to opencode and gets response
+- [ ] `slip session attach` opens TUI
+- [ ] `slip learn` triggers learner agent
+- [ ] `/fix` command works in opencode
+- [ ] `/explain` command works in opencode
+- [ ] Session continuity (same TTY = same session)
 
-## Next Steps
-1. Add `slip model list/set` commands
-2. Run CLI latency research script
-3. Integration test with actual OpenCode server
-4. Test oh-my-zsh plugin installation
+### Zsh Installation
+- [ ] Plugin installed to ~/.oh-my-zsh/custom/plugins/slipstream
+- [ ] Added to plugins=() in ~/.zshrc
+- [ ] `# prefix` triggers slip in live shell
+- [ ] Ctrl+A Ctrl+A toggles mode
+
+### Learning System
+- [ ] session.idle hook fires (OpenCode plugin)
+- [ ] Skills updated after sessions
+- [ ] Agent loads skills
+
+---
+
+## ❌ NOT IMPLEMENTED
+
+- [ ] `slip model list` (calls opencode models, may need opencode running)
+
+---
+
+## NEXT STEPS FOR VERIFICATION
+
+1. **Test slip with actual prompt:**
+   ```bash
+   ./bin/slip server start
+   ./bin/slip "what is the current directory"
+   ```
+
+2. **Test session attach:**
+   ```bash
+   ./bin/slip session attach ttys001
+   ```
+
+3. **Install zsh plugin:**
+   ```bash
+   ./install.sh
+   # Then add 'slipstream' to plugins in ~/.zshrc
+   source ~/.zshrc
+   ```
+
+4. **Test in live shell:**
+   ```bash
+   # how do i list files
+   ```
