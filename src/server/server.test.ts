@@ -13,6 +13,7 @@ describe('server', () => {
 
   describe('checkHealth', () => {
     it('should return healthy when server responds with health data', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() =>
         Promise.resolve({
           ok: true,
@@ -27,6 +28,7 @@ describe('server', () => {
     });
 
     it('should return unhealthy when server is not responding', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() => Promise.reject(new Error('Connection refused')));
 
       const result = await checkHealth(4096);
@@ -36,6 +38,7 @@ describe('server', () => {
     });
 
     it('should return unhealthy when server returns non-ok response', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() =>
         Promise.resolve({
           ok: false,
@@ -49,6 +52,7 @@ describe('server', () => {
     });
 
     it('should timeout after specified duration', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() => Promise.reject(new Error('Aborted')));
 
       const result = await checkHealth(4096, 100);
@@ -59,6 +63,7 @@ describe('server', () => {
 
   describe('isPortInUse', () => {
     it('should return true when port has a listener', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() => Promise.resolve({ ok: true } as Response));
 
       const result = await isPortInUse(4096);
@@ -67,6 +72,7 @@ describe('server', () => {
     });
 
     it('should return false when port has no listener', async () => {
+      // @ts-expect-error - mock doesn't have all fetch properties
       globalThis.fetch = mock(() => Promise.reject(new Error('Connection refused')));
 
       const result = await isPortInUse(4096);

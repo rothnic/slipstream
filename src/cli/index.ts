@@ -415,8 +415,61 @@ const skill = command({
   subcommands: [skillList, skillCreate, skillShow],
 });
 
-// Run CLI
-run([main, server, session, skill, learn], {
-  version: '0.1.0',
+// --- Model Commands ---
+
+const modelList = command({
+  name: 'list',
+  desc: 'List available models',
+  handler: async () => {
+    const result = spawnSync('opencode', ['models'], {
+      encoding: 'utf-8',
+      stdio: ['inherit', 'pipe', 'inherit'],
+    });
+    console.log(result.stdout || 'No models found');
+  },
 });
 
+const modelSet = command({
+  name: 'set',
+  desc: 'Set current model',
+  options: {
+    modelName: positional().desc('Model name (e.g., anthropic/claude-sonnet-4-20250514)'),
+  },
+  handler: async ({ modelName }) => {
+    if (!modelName) {
+      console.log('Usage: slip model set <model-name>');
+      console.log('Example: slip model set anthropic/claude-sonnet-4-20250514');
+      return;
+    }
+    // Store in config
+    const modelFile = join(CACHE_DIR, 'current-model');
+    writeFileSync(modelFile, modelName);
+    console.log(`✓ Model set to: ${modelName}`);
+    console.log('Note: This will be used for new sessions.');
+  },
+});
+
+const modelCurrent = command({
+  name: 'current',
+  desc: 'Show current model',
+  handler: async () => {
+    const modelFile = join(CACHE_DIR, 'current-model');
+    try {
+      const model = readFileSync(modelFile, 'utf-8').trim();
+      console.log(`Current model: ${model}`);
+    } catch {
+      console.log('No model set (using default)');
+    }
+  },
+});
+
+const model = command({
+  name: 'model',
+  desc: 'Manage AI models',
+  subcommands: [modelList, modelSet, modelCurrent],
+});
+
+// Run CLI
+run([main, server, session, skill, model, learn], {
+  version: '0.1.0',
+});
