@@ -121,3 +121,95 @@ export async function fetchWithTimeout(
     clearTimeout(timeout);
   }
 }
+
+/**
+ * Run an interactive command with PTY support
+ * Useful for TUI applications like opencode
+ */
+export async function runInteractive(
+  cmd: string,
+  args: string[] = [],
+  options: {
+    cols?: number;
+    rows?: number;
+    env?: Record<string, string>;
+  } = {}
+): Promise<number> {
+  const cols = options.cols ?? process.stdout.columns ?? 80;
+  const rows = options.rows ?? process.stdout.rows ?? 24;
+
+  const proc = Bun.spawn([cmd, ...args], {
+    terminal: {
+      cols,
+      rows,
+      env: options.env,
+      data(_terminal, data) {
+        process.stdout.write(data);
+      },
+    },
+    env: { ...process.env, ...options.env },
+  });
+
+  // Forward stdin to the terminal
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+    process.stdin.on('data', (data) => {
+      proc.terminal?.write(data);
+    });
+  }
+
+  // Handle terminal resize
+  process.stdout.on('resize', () => {
+    proc.terminal?.resize(
+      process.stdout.columns ?? 80,
+      process.stdout.rows ?? 24
+    );
+  });
+
+  const exitCode = await proc.exited;
+
+  // Cleanup
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(false);
+  }
+  proc.terminal?.close();
+
+  return exitCode;
+}
+
+/**
+ * Create a reusable terminal for multiple commands
+ */
+export function createTerminal(options: {
+  cols?: number;
+  rows?: number;
+  onData?: (data: Buffer) => void;
+} = {}) {
+  const cols = options.cols ?? process.stdout.columns ?? 80;
+  const rows = options.rows ?? process.stdout.rows ?? 24;
+
+  return new Bun.Terminal({
+    cols,
+    rows,
+    data(_term, data) {
+      if (options.onData) {
+        options.onData(data);
+      } else {
+        process.stdout.write(data);
+      }
+    },
+  });
+}
+
+/**
+ * Spawn a command in an existing terminal
+ */
+export async function spawnInTerminal(
+  terminal: InstanceType<typeof Bun.Terminal>,
+  cmd: string,
+  args: string[] = []
+): Promise<number> {
+  const proc = Bun.spawn([cmd, ...args], { terminal });
+  return await proc.exited;
+}
+

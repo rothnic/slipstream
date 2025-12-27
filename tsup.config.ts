@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig([
   {
-    // CLI bundle
+    // CLI bundle (main entry)
     entry: { 'cli/index': 'src/cli/index.ts' },
     outDir: 'dist',
     format: ['esm'],
@@ -12,16 +12,6 @@ export default defineConfig([
     dts: false,
     splitting: false,
     treeshake: true,
-  },
-  {
-    // Daemon bundle
-    entry: { 'daemon/server': 'src/daemon/server.ts' },
-    outDir: 'dist',
-    format: ['esm'],
-    target: 'node18',
-    sourcemap: true,
-    dts: false,
-    splitting: false,
-    treeshake: true,
+    external: ['bun'],
   },
 ]);
