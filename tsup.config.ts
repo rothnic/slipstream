@@ -2,8 +2,8 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig([
   {
-    // Client bundle
-    entry: { 'client/index': 'src/client/index.ts' },
+    // CLI bundle
+    entry: { 'cli/index': 'src/cli/index.ts' },
     outDir: 'dist',
     format: ['esm'],
     target: 'node18',
