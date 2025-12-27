@@ -97,8 +97,8 @@ fi
 # Build and link CLI
 echo ""
 echo "Building CLI..."
-npm run build
-npm link
+bun run build
+bun link
 echo -e "${GREEN}✓ CLI installed (slip command available)${NC}"
 
 echo ""

@@ -1,6 +1,5 @@
 ---
 description: Fix the last failed command
-model: anthropic/claude-sonnet-4-20250514
 ---
 
 The last command failed.

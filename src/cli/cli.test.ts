@@ -1,7 +1,7 @@
 /**
  * Tests for CLI commands
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'bun:test';
 
 // We'll test command parsing and handler logic
 // The actual brocli commands are tested via behavior

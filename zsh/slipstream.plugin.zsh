@@ -108,6 +108,20 @@ __slip_model_indicator() {
 # Heuristics to detect if input looks like natural language
 __slip_is_natural_language() {
   local input="$1"
+  local first_word="${input%% *}"
+  
+  # Exclude known command patterns (package managers, common tools)
+  case "$first_word" in
+    npm|npx|yarn|pnpm|bun|bunx|node|deno|python|python3|pip|pip3|\
+    git|gh|docker|kubectl|terraform|aws|gcloud|az|\
+    make|cargo|go|rustc|gcc|clang|\
+    brew|apt|yum|dnf|pacman|\
+    cd|ls|cat|echo|rm|mv|cp|mkdir|touch|chmod|chown|\
+    curl|wget|ssh|scp|rsync|\
+    vim|nvim|nano|code|subl)
+      return 1
+      ;;
+  esac
   
   # Starts with question word
   [[ "$input" =~ ^(how|what|why|where|when|can|could|would|should|is|are|do|does|help|explain|fix|show|find|list|create|make|write|delete|remove)[[:space:]] ]] && return 0

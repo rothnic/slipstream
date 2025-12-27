@@ -1,7 +1,7 @@
 /**
  * Tests for session commands
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { getSessionDisplayName } from './session';
 
 describe('session commands', () => {
