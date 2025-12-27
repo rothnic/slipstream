@@ -1,0 +1,21 @@
+{
+  "name": "slipstream-plugin",
+  "version": "0.1.0",
+  "description": "Slipstream OpenCode plugin for session learning and custom tools",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --format esm --watch"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "latest"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.0.0"
+  }
+}

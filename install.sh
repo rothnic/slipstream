@@ -70,6 +70,15 @@ mkdir -p "$CONFIG_DIR"/{agent,cache}
 mkdir -p "$HOME/.opencode/skill"
 echo -e "${GREEN}✓ Config directories created${NC}"
 
+# Install skill templates
+SKILL_DIR="$HOME/.opencode/skill"
+for skill in slipstream-prefs slipstream-aliases slipstream-workflows; do
+  if [[ ! -d "$SKILL_DIR/$skill" ]]; then
+    cp -r "config/skills/$skill" "$SKILL_DIR/"
+    echo -e "${GREEN}✓ Installed skill: $skill${NC}"
+  fi
+done
+
 # Install oh-my-zsh plugin
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 PLUGIN_DIR="$ZSH_CUSTOM/plugins/slipstream"
