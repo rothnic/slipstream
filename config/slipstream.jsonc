@@ -1,0 +1,60 @@
+{
+  // Slipstream OpenCode Configuration
+  // Copy to ~/.config/opencode/opencode.jsonc or set OPENCODE_CONFIG env var
+  
+  "$schema": "https://opencode.ai/config.schema.json",
+  
+  // Default model
+  "model": "anthropic/claude-sonnet-4-20250514",
+  
+  // Agent definitions
+  "agent": {
+    "slipstream": {
+      "prompt": "./agents/slipstream.md"
+    },
+    "slipstream/learner": {
+      "prompt": "./agents/learner.md"
+    },
+    "slipstream/crawl": {
+      "prompt": "./agents/crawl.md"
+    }
+  },
+  
+  // Commands
+  "command": {
+    "fix": {
+      "template": "./commands/fix.md"
+    },
+    "explain": {
+      "template": "./commands/explain.md"
+    },
+    "review": {
+      "template": "./commands/review.md"
+    },
+    "crawl": {
+      "template": "./commands/crawl.md"
+    }
+  },
+  
+  // MCP servers (optional)
+  "mcp": {},
+  
+  // Tool permissions
+  "tool": {
+    "bash": {
+      "enabled": true
+    },
+    "read": {
+      "enabled": true
+    },
+    "write": {
+      "enabled": true
+    },
+    "glob": {
+      "enabled": true
+    },
+    "grep": {
+      "enabled": true
+    }
+  }
+}
