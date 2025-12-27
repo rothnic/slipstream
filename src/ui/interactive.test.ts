@@ -1,7 +1,7 @@
 /**
  * Tests for interactive UI utilities
  */
-import { describe, it, expect, vi, beforeEach } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import { detectUIBackend } from './interactive';
 
 describe('interactive', () => {

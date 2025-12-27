@@ -1,8 +1,7 @@
 /**
  * Tests for server health checking and management
- * Uses bun:test compatible mocking
  */
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, mock, afterEach } from 'bun:test';
 import { checkHealth, isPortInUse } from './server';
 
 describe('server', () => {

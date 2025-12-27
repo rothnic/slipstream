@@ -1,7 +1,7 @@
 /**
  * Tests for session management
  */
-import { describe, it, expect, vi, beforeEach } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import { getSessionId, getSessionIdFromTty } from './session';
 
 describe('session', () => {

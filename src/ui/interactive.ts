@@ -3,7 +3,7 @@
  * Uses gum for beautiful dialogs, falls back to fzf or prompts
  */
 
-import { spawn, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import * as readline from 'readline';
 
 export type UIBackend = 'gum' | 'fzf' | 'prompt';

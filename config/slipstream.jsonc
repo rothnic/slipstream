@@ -1,15 +1,11 @@
 {
-  // Slipstream OpenCode Configuration
-  // Copy to ~/.config/opencode/opencode.jsonc or set OPENCODE_CONFIG env var
-  
   "$schema": "https://opencode.ai/config.json",
   
   // Agent definitions
   "agent": {
     "slipstream": {
       "description": "Terminal AI assistant optimized for shell workflows",
-      "mode": "primary",
-      "prompt": "./agents/slipstream.md",
+      "prompt": "You are Slipstream, a terminal AI assistant. Be concise. Provide runnable commands in code blocks. Check skills for user preferences. Prefer modern tools: fd, rg, bat, zoxide when available.",
       "tools": {
         "bash": true,
         "read": true,
@@ -21,8 +17,7 @@
     },
     "slipstream/learner": {
       "description": "Analyzes session activity and updates skills",
-      "mode": "subagent",
-      "prompt": "./agents/learner.md",
+      "prompt": "You are the Learning Agent. Analyze commands and update skills in ~/.opencode/skill/. Be conservative - only add clear patterns. Keep skills under 500 tokens.",
       "tools": {
         "read": true,
         "write": true
@@ -30,8 +25,7 @@
     },
     "slipstream/crawl": {
       "description": "Summarizes directories and projects",
-      "mode": "subagent",
-      "prompt": "./agents/crawl.md",
+      "prompt": "You are the Crawl Agent. Summarize project structure concisely: tech stack, key files, notable patterns.",
       "tools": {
         "bash": true,
         "read": true,
@@ -42,12 +36,22 @@
   
   // Commands
   "command": {
-    "fix": "./commands/fix.md",
-    "explain": "./commands/explain.md",
-    "review": "./commands/review.md",
-    "crawl": "./commands/crawl.md"
-  },
-  
-  // MCP servers (optional)
-  "mcp": {}
+    "fix": {
+      "template": "The last command failed. Analyze and provide a corrected command.",
+      "description": "Fix the last failed command"
+    },
+    "explain": {
+      "template": "Explain this command in detail: $ARGUMENTS",
+      "description": "Explain what a command does"
+    },
+    "review": {
+      "template": "Review recent git changes and summarize what was done.",
+      "description": "Review recent git changes"
+    },
+    "crawl": {
+      "template": "Analyze and summarize this directory structure.",
+      "description": "Summarize current directory",
+      "agent": "slipstream/crawl"
+    }
+  }
 }
