@@ -93,8 +93,8 @@ async function main() {
     //   model: config.model,
     // });
     
-    // Keep process alive
-    await new Promise(() => {}); // Never resolves, keeps daemon running
+    // Keep process alive - will exit via signal handlers
+    process.stdin.resume();
     
   } catch (err) {
     console.error('[Daemon] Fatal error:', err);

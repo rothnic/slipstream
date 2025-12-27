@@ -46,13 +46,18 @@ export async function isPortInUse(port: number): Promise<boolean> {
 }
 
 /**
+ * Constants for port search
+ */
+const DEFAULT_START_PORT = 3000;
+const MAX_PORT_SEARCH_ATTEMPTS = 100;
+
+/**
  * Find an available port starting from the given port
  */
-export async function findAvailablePort(startPort: number = 3000): Promise<number> {
+export async function findAvailablePort(startPort: number = DEFAULT_START_PORT): Promise<number> {
   let port = startPort;
-  const maxAttempts = 100;
   
-  for (let i = 0; i < maxAttempts; i++) {
+  for (let i = 0; i < MAX_PORT_SEARCH_ATTEMPTS; i++) {
     const inUse = await isPortInUse(port);
     if (!inUse) {
       return port;
@@ -60,5 +65,5 @@ export async function findAvailablePort(startPort: number = 3000): Promise<numbe
     port++;
   }
   
-  throw new Error(`Could not find available port after ${maxAttempts} attempts`);
+  throw new Error(`Could not find available port after ${MAX_PORT_SEARCH_ATTEMPTS} attempts`);
 }

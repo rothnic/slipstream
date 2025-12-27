@@ -1,6 +1,15 @@
 import { z } from 'zod';
 
 /**
+ * Configuration constants
+ */
+const MIN_IDLE_TIMEOUT_SECONDS = 60;
+const DEFAULT_IDLE_TIMEOUT_SECONDS = 3600; // 1 hour
+const MIN_PORT = 1024;
+const MAX_PORT = 65535;
+const DEFAULT_PORT = 3000;
+
+/**
  * Schema for user configuration stored in ~/.config/slipstream/config.json
  */
 export const UserConfigSchema = z.object({
@@ -17,8 +26,8 @@ export const UserConfigSchema = z.object({
   
   // Daemon settings
   daemon: z.object({
-    idleTimeout: z.number().min(60).default(3600), // 1 hour in seconds
-    port: z.number().min(1024).max(65535).default(3000),
+    idleTimeout: z.number().min(MIN_IDLE_TIMEOUT_SECONDS).default(DEFAULT_IDLE_TIMEOUT_SECONDS),
+    port: z.number().min(MIN_PORT).max(MAX_PORT).default(DEFAULT_PORT),
   }).default({}),
   
   // UI preferences
