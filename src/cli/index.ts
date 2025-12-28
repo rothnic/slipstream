@@ -23,6 +23,7 @@ const DEFAULT_PORT = 4096;
 const CONFIG_DIR = join(homedir(), '.config', 'opencode', 'slipstream');
 const CACHE_DIR = join(CONFIG_DIR, 'cache');
 const STATE_FILE = join(CACHE_DIR, 'server-state.json');
+const TTY_SESSIONS_FILE = join(CACHE_DIR, 'tty-sessions.json');
 
 // Known subcommands - if first arg is not one of these, treat as prompt
 const KNOWN_COMMANDS = ['server', 'session', 'skill', 'model', 'learn', 'slip', '--help', '-h', '--version', '-v'];
@@ -52,6 +53,36 @@ function loadState(): ServerState | null {
 
 function saveState(state: ServerState): void {
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+// --- TTY Session Mapping ---
+// Maps TTY path -> OpenCode session ID for session-per-terminal-tab behavior
+
+type TtySessions = Record<string, { sessionId: string; updatedAt: string }>;
+
+function loadTtySessions(): TtySessions {
+  try {
+    if (existsSync(TTY_SESSIONS_FILE)) {
+      return JSON.parse(readFileSync(TTY_SESSIONS_FILE, 'utf-8'));
+    }
+  } catch {}
+  return {};
+}
+
+function saveTtySession(tty: string, sessionId: string): void {
+  const sessions = loadTtySessions();
+  sessions[tty] = { sessionId, updatedAt: new Date().toISOString() };
+  writeFileSync(TTY_SESSIONS_FILE, JSON.stringify(sessions, null, 2));
+}
+
+function getTtySessionId(tty: string): string | null {
+  const sessions = loadTtySessions();
+  return sessions[tty]?.sessionId ?? null;
+}
+
+function getCurrentTty(): string {
+  const result = spawnSync('tty', [], { encoding: 'utf-8' });
+  return result.stdout?.trim() || '';
 }
 
 function clearState(): void {
@@ -128,11 +159,10 @@ const main = command({
     prompt: positional().desc('Natural language prompt'),
     new: boolean('new').alias('n').desc('Start new session'),
     model: string('model').alias('m').desc('Model to use'),
-    continue_session: boolean('continue').alias('c').desc('Continue last session'),
     verbose: boolean('verbose').desc('Show what slip is doing'),
     port: number('port').alias('p').default(DEFAULT_PORT).desc('Server port'),
   },
-  handler: async ({ prompt, new: isNew, model, continue_session, verbose, port }) => {
+  handler: async ({ prompt, new: isNew, model, verbose, port }) => {
     if (!prompt) {
       console.log('Usage: slip "your prompt here"');
       console.log('       slip --help');
@@ -143,6 +173,9 @@ const main = command({
     const state = loadState();
     const serverPort = state?.port ?? port;
     const health = await checkHealth(serverPort);
+    
+    // Check for existing session from env var (set by zsh plugin or previous call)
+    const existingSessionId = isNew ? null : process.env.SLIP_SESSION;
     
     // Build opencode run command
     const args = ['run'];
@@ -157,9 +190,14 @@ const main = command({
       console.log(`\x1b[2m→ No server running, starting fresh instance\x1b[0m`);
     }
     
-    // Session handling: --continue resumes, --new starts fresh, default is new per command
-    if (continue_session && !isNew) {
-      args.push('--continue');
+    // Session handling: reuse session from SLIP_SESSION env var if available
+    if (existingSessionId) {
+      args.push('--session', existingSessionId);
+      if (verbose) {
+        console.log(`\x1b[2m→ Reusing session ${existingSessionId}\x1b[0m`);
+      }
+    } else if (verbose && isNew) {
+      console.log(`\x1b[2m→ Starting new session\x1b[0m`);
     }
     
     if (model) args.push('--model', model);
@@ -170,6 +208,17 @@ const main = command({
     }
 
     spawnSync('opencode', args, { stdio: 'inherit' });
+    
+    // After first call, get session ID and output for shell to capture
+    // The zsh plugin can capture this and export SLIP_SESSION
+    if (!existingSessionId) {
+      const listResult = spawnSync('opencode', ['session', 'list'], { encoding: 'utf-8' });
+      const match = listResult.stdout?.match(/^(ses_[a-zA-Z0-9]+)/m);
+      if (match) {
+        // Output in format shell can parse
+        console.log(`\x1b[2mSLIP_SESSION=${match[1]}\x1b[0m`);
+      }
+    }
   },
 });
 
