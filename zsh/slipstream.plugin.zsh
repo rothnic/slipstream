@@ -76,35 +76,37 @@ bindkey '^A^A' __slip_toggle_mode  # Ctrl+A Ctrl+A
 
 # Intercept Enter key
 __slip_accept_line() {
-  if (( SLIP_PROMPT_MODE )) && [[ -n "$BUFFER" ]]; then
-    # In prompt mode - send to slip
+  # Check for explicit prefixes first
+  case "$BUFFER" in
+    '#'*)
+      # Warp-style: # followed by query
+      local query="${BUFFER#\#}"
+      BUFFER=""
+      zle redisplay
+      slip "${query# }"
+      return
+      ;;
+    '??'*)
+      # Alternative prefix
+      local query="${BUFFER#\?\?}"
+      BUFFER=""
+      zle redisplay
+      slip "${query# }"
+      return
+      ;;
+  esac
+  
+  # Check if in prompt mode
+  if [[ "$SLIP_PROMPT_MODE" == "1" ]] && [[ -n "$BUFFER" ]]; then
     local query="$BUFFER"
     BUFFER=""
     zle redisplay
     slip "$query"
-  else
-    # Normal mode - check for prefixes
-    case "$BUFFER" in
-      '#'*)
-        # Warp-style: # followed by query
-        local query="${BUFFER#\#}"
-        BUFFER=""
-        zle redisplay
-        slip "${query# }"
-        ;;
-      '??'*)
-        # Alternative prefix
-        local query="${BUFFER#\?\?}"
-        BUFFER=""
-        zle redisplay
-        slip "${query# }"
-        ;;
-      *)
-        # Normal command - just run it
-        zle .accept-line
-        ;;
-    esac
+    return
   fi
+  
+  # Normal command - pass through to default handler
+  zle .accept-line
 }
 zle -N accept-line __slip_accept_line
 
