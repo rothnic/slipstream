@@ -52,7 +52,7 @@ slip-status() {
   echo "Commands:"
   echo "  # <query>     Send query to AI"
   echo "  fix           Fix last failed command"
-  echo "  Ctrl+Space   Toggle prompt mode"
+  echo "  Ctrl+G       Toggle prompt mode"
   echo "  slip-status   Show this status"
 }
 
@@ -72,8 +72,8 @@ __slip_toggle_mode() {
   zle reset-prompt
 }
 zle -N __slip_toggle_mode
-# Ctrl+Space to toggle (less likely to conflict)
-bindkey '^ ' __slip_toggle_mode
+# Ctrl+G to toggle AI mode (less likely to conflict)
+bindkey '^G' __slip_toggle_mode
 
 # Intercept Enter key
 __slip_accept_line() {
@@ -189,4 +189,4 @@ __slip_update_rprompt() {
 # Hook to update prompt on each command
 add-zsh-hook precmd __slip_update_rprompt
 
-echo "Slipstream loaded. Use '# <question>' or 'fix' after errors. Ctrl+Space toggles AI mode."
+echo "Slipstream loaded. Use '# <question>' or 'fix' after errors. Ctrl+G toggles AI mode."
