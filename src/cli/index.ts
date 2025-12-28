@@ -218,6 +218,9 @@ const main = command({
     const llmStart = Date.now();
     let timeToFirstToken = 0;
     
+    // Start spinner on its own line
+    process.stdout.write('\n');
+    
     // Start spinner
     const spinner = setInterval(() => {
       if (spinnerActive) {
@@ -239,7 +242,7 @@ const main = command({
         timeToFirstToken = Date.now() - llmStart;
         spinnerActive = false;
         clearInterval(spinner);
-        // Clear line, move cursor to start, then print newline if needed
+        // Clear spinner line, then newline for output
         process.stdout.write('\r\x1b[K');
         firstOutput = false;
       }
