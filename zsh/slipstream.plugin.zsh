@@ -52,28 +52,42 @@ slip-status() {
   echo "Commands:"
   echo "  # <query>     Send query to AI"
   echo "  fix           Fix last failed command"
-  echo "  Ctrl+\\      Toggle prompt mode"
+  echo "  slip-ai       Enter AI mode (all inputs go to AI)"
+  echo "  slip-cmd      Return to command mode"
   echo "  slip-status   Show this status"
 }
 
 # --- Mode Toggle ---
 
-# Toggle between command and prompt mode
+# Toggle between command and prompt mode (for keybinding)
 __slip_toggle_mode() {
   if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
     SLIP_PROMPT_MODE=0
     SLIP_MODE="command"
-    zle -M "🔧 Command mode (use '# query' for AI)"
+    zle -M "🔧 Command mode"
   else
     SLIP_PROMPT_MODE=1
     SLIP_MODE="prompt"
-    zle -M "🤖 Prompt mode (type naturally, Enter sends to AI)"
+    zle -M "🤖 AI mode - Enter sends to AI"
   fi
   zle reset-prompt
 }
 zle -N __slip_toggle_mode
-# Ctrl+\\ to toggle AI mode
-bindkey '^\\' __slip_toggle_mode
+
+# Command-based toggle (more reliable than keybindings)
+slip-ai() {
+  export SLIP_PROMPT_MODE=1
+  export SLIP_MODE="prompt"
+  echo "🤖 AI mode ON - type naturally, press Enter to send to AI"
+  echo "   Type 'slip-cmd' to return to command mode"
+}
+
+slip-cmd() {
+  export SLIP_PROMPT_MODE=0
+  export SLIP_MODE="command"
+  echo "🔧 Command mode ON - normal shell commands"
+  echo "   Use '# query' to send to AI, or 'slip-ai' for AI mode"
+}
 
 # Intercept Enter key
 __slip_accept_line() {
@@ -189,4 +203,4 @@ __slip_update_rprompt() {
 # Hook to update prompt on each command
 add-zsh-hook precmd __slip_update_rprompt
 
-echo "Slipstream loaded. Use '# <question>' or 'fix' after errors. Ctrl+\\ toggles AI mode."
+echo "Slipstream loaded. Use '# query' for AI, 'slip-ai' for AI mode, 'slip-cmd' for command mode."
