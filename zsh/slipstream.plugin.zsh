@@ -6,26 +6,25 @@ export SLIPSTREAM_CONFIG="${SLIPSTREAM_CONFIG:-$HOME/.config/opencode/slipstream
 export SLIP_MODE="${SLIP_MODE:-command}"
 export SLIP_AUTO_DETECT="${SLIP_AUTO_DETECT:-0}"
 export SLIP_PROMPT_MODE=0
-
-# Session ID per terminal tab (uses TTY)
-__slip_session_id() {
-  local tty=$(tty 2>/dev/null | tr '/' '_')
-  echo "slip-${tty:-$$}"
-}
+# SLIP_SESSION is exported by the CLI after first call
 
 # Main slip command wrapper
 slip() {
-  local session=$(__slip_session_id)
+  local output
   
   # Check if slip CLI is available
   if command -v slip &> /dev/null; then
-    command slip "$@"
+    # Capture output to extract SLIP_SESSION
+    output=$(command slip "$@" 2>&1 | tee /dev/tty)
+    
+    # Extract and export SLIP_SESSION if present
+    local session_line=$(echo "$output" | grep -o 'SLIP_SESSION=ses_[a-zA-Z0-9]*')
+    if [[ -n "$session_line" ]]; then
+      export ${session_line}
+    fi
   else
     # Fallback to direct opencode
-    opencode run \
-      --session "$session" \
-      --agent slipstream \
-      "$@"
+    opencode run "$@"
   fi
 }
 
