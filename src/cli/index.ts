@@ -169,10 +169,14 @@ const main = command({
       return;
     }
 
+    const startTime = Date.now();
+
     // Check if server is running and attach if so (faster subsequent calls)
     const state = loadState();
     const serverPort = state?.port ?? port;
+    const healthStart = Date.now();
     const health = await checkHealth(serverPort);
+    const healthTime = Date.now() - healthStart;
     
     // Check for existing session from env var (set by zsh plugin or previous call)
     const existingSessionId = isNew ? null : process.env.SLIP_SESSION;
@@ -184,10 +188,10 @@ const main = command({
     if (health.healthy) {
       args.push('--attach', `http://localhost:${serverPort}`);
       if (verbose) {
-        console.log(`\x1b[2m→ Attaching to server on port ${serverPort}\x1b[0m`);
+        console.log(`\x1b[2m→ Attaching to server on port ${serverPort} (${healthTime}ms)\x1b[0m`);
       }
     } else if (verbose) {
-      console.log(`\x1b[2m→ No server running, starting fresh instance\x1b[0m`);
+      console.log(`\x1b[2m→ No server running, starting fresh instance (${healthTime}ms)\x1b[0m`);
     }
     
     // Session handling: reuse session from SLIP_SESSION env var if available
@@ -211,11 +215,14 @@ const main = command({
     const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let spinnerIdx = 0;
     let spinnerActive = true;
+    const llmStart = Date.now();
+    let timeToFirstToken = 0;
     
     // Start spinner
     const spinner = setInterval(() => {
       if (spinnerActive) {
-        process.stdout.write(`\r\x1b[2m${spinnerChars[spinnerIdx]} Thinking...\x1b[0m`);
+        const elapsed = ((Date.now() - llmStart) / 1000).toFixed(1);
+        process.stdout.write(`\r\x1b[2m${spinnerChars[spinnerIdx]} Thinking... (${elapsed}s)\x1b[0m`);
         spinnerIdx = (spinnerIdx + 1) % spinnerChars.length;
       }
     }, 80);
@@ -229,6 +236,7 @@ const main = command({
     proc.stdout?.on('data', (data) => {
       if (firstOutput) {
         // Clear spinner on first output
+        timeToFirstToken = Date.now() - llmStart;
         spinnerActive = false;
         clearInterval(spinner);
         process.stdout.write('\r\x1b[K'); // Clear line
@@ -248,6 +256,12 @@ const main = command({
         resolve();
       });
     });
+
+    const totalTime = Date.now() - startTime;
+    
+    if (verbose) {
+      console.log(`\x1b[2m→ Time to first token: ${timeToFirstToken}ms | Total: ${totalTime}ms\x1b[0m`);
+    }
     
     // After first call, get session ID and output for shell to capture
     // The zsh plugin can capture this and export SLIP_SESSION
