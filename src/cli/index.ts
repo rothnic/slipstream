@@ -222,7 +222,7 @@ const main = command({
     const spinner = setInterval(() => {
       if (spinnerActive) {
         const elapsed = ((Date.now() - llmStart) / 1000).toFixed(1);
-        process.stdout.write(`\r\x1b[2m${spinnerChars[spinnerIdx]} Thinking... (${elapsed}s)\x1b[0m`);
+        process.stdout.write(`\r\x1b[K\x1b[2m${spinnerChars[spinnerIdx]} Thinking... (${elapsed}s)\x1b[0m`);
         spinnerIdx = (spinnerIdx + 1) % spinnerChars.length;
       }
     }, 80);
@@ -235,11 +235,12 @@ const main = command({
     let firstOutput = true;
     proc.stdout?.on('data', (data) => {
       if (firstOutput) {
-        // Clear spinner on first output
+        // Clear spinner completely on first output
         timeToFirstToken = Date.now() - llmStart;
         spinnerActive = false;
         clearInterval(spinner);
-        process.stdout.write('\r\x1b[K'); // Clear line
+        // Clear line, move cursor to start, then print newline if needed
+        process.stdout.write('\r\x1b[K');
         firstOutput = false;
       }
       process.stdout.write(data);
