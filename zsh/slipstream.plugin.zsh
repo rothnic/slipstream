@@ -91,7 +91,15 @@ slip-cmd() {
 
 # Intercept Enter key
 __slip_accept_line() {
-  # Check for explicit prefixes first
+  # Always let slip-* commands pass through (even in AI mode)
+  case "$BUFFER" in
+    slip-cmd*|slip-ai*|slip-status*|fix)
+      zle .accept-line
+      return
+      ;;
+  esac
+
+  # Check for explicit prefixes
   case "$BUFFER" in
     '#'*)
       # Warp-style: # followed by query
