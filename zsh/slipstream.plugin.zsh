@@ -141,10 +141,10 @@ fix() {
 
 # --- Prompt Indicators ---
 
-# Mode indicator for prompt
-__slip_prompt_prefix() {
-  if (( SLIP_PROMPT_MODE )); then
-    echo "%F{cyan}🤖 %f"
+# Mode indicator - shows in right prompt
+__slip_mode_indicator() {
+  if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
+    echo "%F{magenta}%B[🤖 AI]%b%f"
   fi
 }
 
@@ -174,9 +174,19 @@ command_not_found_handler() {
 
 # --- Initialization ---
 
-# Add prompt prefix if using native zsh prompt
-if [[ -z "$POWERLEVEL9K_LEFT_PROMPT_ELEMENTS" ]]; then
-  PS1='$(__slip_prompt_prefix)'"${PS1}"
-fi
+# Add mode indicator to right prompt (works with most themes)
+__slip_update_rprompt() {
+  if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
+    # Save original RPROMPT if not saved yet
+    [[ -z "$__SLIP_ORIG_RPROMPT" ]] && __SLIP_ORIG_RPROMPT="$RPROMPT"
+    RPROMPT="%F{magenta}%B[🤖 AI MODE]%b%f ${__SLIP_ORIG_RPROMPT}"
+  else
+    # Restore original RPROMPT
+    [[ -n "$__SLIP_ORIG_RPROMPT" ]] && RPROMPT="$__SLIP_ORIG_RPROMPT"
+  fi
+}
 
-echo "Slipstream loaded. Use '# <question>' or 'fix' after errors."
+# Hook to update prompt on each command
+add-zsh-hook precmd __slip_update_rprompt
+
+echo "Slipstream loaded. Use '# <question>' or 'fix' after errors. Ctrl+Space toggles AI mode."
