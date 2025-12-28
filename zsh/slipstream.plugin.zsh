@@ -54,6 +54,7 @@ slip-status() {
   echo "  fix           Fix last failed command"
   echo "  slip-ai       Enter AI mode (all inputs go to AI)"
   echo "  slip-cmd      Return to command mode"
+  echo "  slip-tui      Open interactive TUI (for approvals)"
   echo "  slip-status   Show this status"
 }
 
@@ -80,6 +81,7 @@ slip-ai() {
   export SLIP_MODE="prompt"
   echo "🤖 AI mode ON - type naturally, press Enter to send to AI"
   echo "   Type 'slip-cmd' to return to command mode"
+  echo "   For file edits requiring approval, use 'slip-tui'"
 }
 
 slip-cmd() {
@@ -89,11 +91,29 @@ slip-cmd() {
   echo "   Use '# query' to send to AI, or 'slip-ai' for AI mode"
 }
 
+# Launch interactive TUI for tasks requiring approval (file edits, etc)
+slip-tui() {
+  local session_args=""
+  
+  # Continue existing session if available
+  if [[ -n "$SLIP_SESSION" ]]; then
+    session_args="--session $SLIP_SESSION"
+  fi
+  
+  echo "🖥️  Launching interactive OpenCode TUI..."
+  echo "   Use this for tasks that need your approval (file edits, commands)"
+  echo "   Press 'q' to exit back to shell"
+  echo ""
+  
+  # Launch full TUI
+  opencode $session_args
+}
+
 # Intercept Enter key
 __slip_accept_line() {
   # Always let slip-* commands pass through (even in AI mode)
   case "$BUFFER" in
-    slip-cmd*|slip-ai*|slip-status*|fix)
+    slip-cmd*|slip-ai*|slip-status*|slip-tui*|fix)
       zle .accept-line
       return
       ;;
