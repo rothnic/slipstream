@@ -129,8 +129,9 @@ const main = command({
     new: boolean('new').alias('n').desc('Start new session'),
     model: string('model').alias('m').desc('Model to use'),
     continue_session: boolean('continue').alias('c').desc('Continue last session'),
+    verbose: boolean('verbose').desc('Show what slip is doing'),
   },
-  handler: async ({ prompt, new: isNew, model, continue_session }) => {
+  handler: async ({ prompt, new: isNew, model, continue_session, verbose }) => {
     if (!prompt) {
       console.log('Usage: slip "your prompt here"');
       console.log('       slip --help');
@@ -147,6 +148,11 @@ const main = command({
     
     if (model) args.push('--model', model);
     args.push(prompt);
+
+    if (verbose) {
+      console.log(`\x1b[2m→ Running: opencode ${args.join(' ')}\x1b[0m`);
+      console.log(`\x1b[2m→ Waiting for AI response...\x1b[0m`);
+    }
 
     spawnSync('opencode', args, { stdio: 'inherit' });
   },
