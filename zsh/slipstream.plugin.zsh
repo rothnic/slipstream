@@ -241,6 +241,3 @@ else
   # They need to add 'my_slipstream' to their POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS in .p10k.zsh
   :
 fi
-
-echo "Slipstream loaded. Use '# query' for AI, 'slip-ai' for AI mode, 'slip-cmd' for command mode."
-# If using p10k, add my_slipstream segment to your .p10k.zsh for AI mode indicator.
