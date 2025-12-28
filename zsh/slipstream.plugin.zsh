@@ -31,6 +31,31 @@ slip() {
   fi
 }
 
+# Show current status
+slip-status() {
+  echo "Slipstream Status:"
+  echo "  Mode: $SLIP_MODE"
+  if (( SLIP_PROMPT_MODE )); then
+    echo "  Prompt Mode: ON (type naturally, press Enter to send)"
+  else
+    echo "  Prompt Mode: OFF (use '# query' prefix)"
+  fi
+  if [[ -n "$SLIP_SESSION" ]]; then
+    echo "  Session: $SLIP_SESSION"
+  else
+    echo "  Session: (none - will create on first query)"
+  fi
+  if [[ -n "$SLIP_LAST_FAILED_CMD" ]]; then
+    echo "  Last failed: $SLIP_LAST_FAILED_CMD (exit $SLIP_LAST_EXIT_CODE)"
+  fi
+  echo ""
+  echo "Commands:"
+  echo "  # <query>     Send query to AI"
+  echo "  fix           Fix last failed command"
+  echo "  Ctrl+A Ctrl+A Toggle prompt mode"
+  echo "  slip-status   Show this status"
+}
+
 # --- Mode Toggle ---
 
 # Toggle between command and prompt mode
@@ -38,9 +63,11 @@ __slip_toggle_mode() {
   if (( SLIP_PROMPT_MODE )); then
     SLIP_PROMPT_MODE=0
     SLIP_MODE="command"
+    zle -M "🔧 Command mode (use '# query' for AI)"
   else
     SLIP_PROMPT_MODE=1
     SLIP_MODE="prompt"
+    zle -M "🤖 Prompt mode (type naturally, Enter sends to AI)"
   fi
   zle reset-prompt
 }
