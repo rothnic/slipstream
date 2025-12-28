@@ -196,19 +196,31 @@ command_not_found_handler() {
 
 # --- Initialization ---
 
-# Add mode indicator to right prompt (works with most themes)
-__slip_update_rprompt() {
+# Define p10k segment for AI mode indicator
+# Users add 'my_slipstream' to POWERLEVEL9K_LEFT_PROMPT_ELEMENTS or RIGHT in their .p10k.zsh
+function prompt_my_slipstream() {
   if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
-    # Save original RPROMPT if not saved yet
-    [[ -z "$__SLIP_ORIG_RPROMPT" ]] && __SLIP_ORIG_RPROMPT="$RPROMPT"
-    RPROMPT="%F{magenta}%B[🤖 AI MODE]%b%f ${__SLIP_ORIG_RPROMPT}"
-  else
-    # Restore original RPROMPT
-    [[ -n "$__SLIP_ORIG_RPROMPT" ]] && RPROMPT="$__SLIP_ORIG_RPROMPT"
+    p10k segment -f magenta -b black -i '🤖' -t 'AI'
   fi
 }
 
-# Hook to update prompt on each command
-add-zsh-hook precmd __slip_update_rprompt
+# For non-p10k users, use RPROMPT
+if [[ -z "$POWERLEVEL9K_LEFT_PROMPT_ELEMENTS" ]]; then
+  # Not using p10k - fallback to RPROMPT
+  __slip_update_rprompt() {
+    if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
+      [[ -z "$__SLIP_ORIG_RPROMPT" ]] && __SLIP_ORIG_RPROMPT="$RPROMPT"
+      RPROMPT="%F{magenta}%B[🤖 AI]%b%f ${__SLIP_ORIG_RPROMPT}"
+    else
+      [[ -n "$__SLIP_ORIG_RPROMPT" ]] && RPROMPT="$__SLIP_ORIG_RPROMPT"
+    fi
+  }
+  add-zsh-hook precmd __slip_update_rprompt
+else
+  # Using p10k - remind user to add segment
+  # They need to add 'my_slipstream' to their POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS in .p10k.zsh
+  :
+fi
 
 echo "Slipstream loaded. Use '# query' for AI, 'slip-ai' for AI mode, 'slip-cmd' for command mode."
+# If using p10k, add my_slipstream segment to your .p10k.zsh for AI mode indicator.
