@@ -52,7 +52,7 @@ slip-status() {
   echo "Commands:"
   echo "  # <query>     Send query to AI"
   echo "  fix           Fix last failed command"
-  echo "  Ctrl+A Ctrl+A Toggle prompt mode"
+  echo "  Ctrl+Space   Toggle prompt mode"
   echo "  slip-status   Show this status"
 }
 
@@ -60,7 +60,7 @@ slip-status() {
 
 # Toggle between command and prompt mode
 __slip_toggle_mode() {
-  if (( SLIP_PROMPT_MODE )); then
+  if [[ "$SLIP_PROMPT_MODE" == "1" ]]; then
     SLIP_PROMPT_MODE=0
     SLIP_MODE="command"
     zle -M "🔧 Command mode (use '# query' for AI)"
@@ -72,7 +72,8 @@ __slip_toggle_mode() {
   zle reset-prompt
 }
 zle -N __slip_toggle_mode
-bindkey '^A^A' __slip_toggle_mode  # Ctrl+A Ctrl+A
+# Ctrl+Space to toggle (less likely to conflict)
+bindkey '^ ' __slip_toggle_mode
 
 # Intercept Enter key
 __slip_accept_line() {
