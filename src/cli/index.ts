@@ -207,7 +207,47 @@ const main = command({
       console.log(`\x1b[2m→ Running: opencode ${args.join(' ')}\x1b[0m`);
     }
 
-    spawnSync('opencode', args, { stdio: 'inherit' });
+    // Show spinner while waiting for response
+    const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let spinnerIdx = 0;
+    let spinnerActive = true;
+    
+    // Start spinner
+    const spinner = setInterval(() => {
+      if (spinnerActive) {
+        process.stdout.write(`\r\x1b[2m${spinnerChars[spinnerIdx]} Thinking...\x1b[0m`);
+        spinnerIdx = (spinnerIdx + 1) % spinnerChars.length;
+      }
+    }, 80);
+
+    // Use spawn instead of spawnSync to handle output streaming
+    const proc = spawn('opencode', args, { 
+      stdio: ['inherit', 'pipe', 'inherit'],
+    });
+    
+    let firstOutput = true;
+    proc.stdout?.on('data', (data) => {
+      if (firstOutput) {
+        // Clear spinner on first output
+        spinnerActive = false;
+        clearInterval(spinner);
+        process.stdout.write('\r\x1b[K'); // Clear line
+        firstOutput = false;
+      }
+      process.stdout.write(data);
+    });
+
+    // Wait for process to exit
+    await new Promise<void>((resolve) => {
+      proc.on('close', () => {
+        spinnerActive = false;
+        clearInterval(spinner);
+        if (firstOutput) {
+          process.stdout.write('\r\x1b[K'); // Clear spinner if no output
+        }
+        resolve();
+      });
+    });
     
     // After first call, get session ID and output for shell to capture
     // The zsh plugin can capture this and export SLIP_SESSION
