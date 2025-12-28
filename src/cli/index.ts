@@ -130,16 +130,32 @@ const main = command({
     model: string('model').alias('m').desc('Model to use'),
     continue_session: boolean('continue').alias('c').desc('Continue last session'),
     verbose: boolean('verbose').desc('Show what slip is doing'),
+    port: number('port').alias('p').default(DEFAULT_PORT).desc('Server port'),
   },
-  handler: async ({ prompt, new: isNew, model, continue_session, verbose }) => {
+  handler: async ({ prompt, new: isNew, model, continue_session, verbose, port }) => {
     if (!prompt) {
       console.log('Usage: slip "your prompt here"');
       console.log('       slip --help');
       return;
     }
 
+    // Check if server is running and attach if so (faster subsequent calls)
+    const state = loadState();
+    const serverPort = state?.port ?? port;
+    const health = await checkHealth(serverPort);
+    
     // Build opencode run command
     const args = ['run'];
+    
+    // If server is running, attach to it for faster response
+    if (health.healthy) {
+      args.push('--attach', `http://localhost:${serverPort}`);
+      if (verbose) {
+        console.log(`\x1b[2m→ Attaching to server on port ${serverPort}\x1b[0m`);
+      }
+    } else if (verbose) {
+      console.log(`\x1b[2m→ No server running, starting fresh instance\x1b[0m`);
+    }
     
     // Session handling: --continue resumes, --new starts fresh, default is new per command
     if (continue_session && !isNew) {
@@ -151,7 +167,6 @@ const main = command({
 
     if (verbose) {
       console.log(`\x1b[2m→ Running: opencode ${args.join(' ')}\x1b[0m`);
-      console.log(`\x1b[2m→ Waiting for AI response...\x1b[0m`);
     }
 
     spawnSync('opencode', args, { stdio: 'inherit' });
